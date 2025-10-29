@@ -1,10 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { TabBar, Tab } from "@/components/TabBar";
 import { TabContent } from "@/components/TabContent";
 import { Sidebar } from "@/components/Sidebar";
 import { BrowserToolbar } from "@/components/BrowserToolbar";
-import { AIAssistant } from "@/components/AIAssistant"; 
-import React from 'react';
+import { AIAssistant } from "@/components/AIAssistant";
+import React from "react";
 
 export interface ActiveProfile {
   _id: string;
@@ -19,24 +19,31 @@ interface IndexProps {
   onProfileSwitch: (profile: ActiveProfile) => void;
 }
 
-
 const Index: React.FC<IndexProps> = ({ profile, allProfiles, onProfileSwitch }) => {
-  const [tabs, setTabs] = useState<Tab[]>([
-    { id: "tab-1", title: `New Tab` },
-  ]);
+  const [tabs, setTabs] = useState<Tab[]>([{ id: "tab-1", title: "New Tab" }]);
   const [activeTabId, setActiveTabId] = useState("tab-1");
   const [tabSearch, setTabSearch] = useState<Record<string, string>>({ "tab-1": "" });
   const [isVerticalLayout, setIsVerticalLayout] = useState(false);
-  
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
-  const [assistantWidth, setAssistantWidth] = useState(320); 
 
-  
+  // Load profiles from localStorage
+  const [localProfiles, setLocalProfiles] = useState<ActiveProfile[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("profiles");
+    if (saved) {
+      setLocalProfiles(JSON.parse(saved));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (localProfiles.length > 0) {
+      localStorage.setItem("profiles", JSON.stringify(localProfiles));
+    }
+  }, [localProfiles]);
+
   const handleTabAdd = () => {
-    const newTab: Tab = {
-      id: `tab-${Date.now()}`,
-      title: "New Tab",
-    };
+    const newTab: Tab = { id: `tab-${Date.now()}`, title: "New Tab" };
     setTabs([...tabs, newTab]);
     setActiveTabId(newTab.id);
     setTabSearch((prev) => ({ ...prev, [newTab.id]: "" }));
@@ -44,17 +51,14 @@ const Index: React.FC<IndexProps> = ({ profile, allProfiles, onProfileSwitch }) 
 
   const handleTabClose = (tabId: string) => {
     if (tabs.length === 1) return;
-    
     const tabIndex = tabs.findIndex((t) => t.id === tabId);
     const newTabs = tabs.filter((t) => t.id !== tabId);
     setTabs(newTabs);
-
     setTabSearch((prev) => {
       const copy = { ...prev };
       delete copy[tabId];
       return copy;
     });
-
     if (tabId === activeTabId) {
       const newActiveIndex = tabIndex > 0 ? tabIndex - 1 : 0;
       setActiveTabId(newTabs[newActiveIndex].id);
@@ -65,24 +69,31 @@ const Index: React.FC<IndexProps> = ({ profile, allProfiles, onProfileSwitch }) 
     setActiveTabId(tabId);
   };
 
+  const handleProfileSwitch = (id: string) => {
+    const matchedProfile =
+      localProfiles.find((p) => p._id === id) ||
+      allProfiles.find((p) => p._id === id);
+    if (matchedProfile) {
+      onProfileSwitch(matchedProfile);
+    }
+  };
+
   return (
-    <div className="flex h-screen w-full relative"> 
-      
-      {!isVerticalLayout && (
-          isAssistantOpen ? (
-            <AIAssistant 
-              onClose={() => setIsAssistantOpen(false)}
-              onWidthChange={setAssistantWidth}
-            />
-          ) : (
-            <Sidebar 
-              isVerticalLayout={isVerticalLayout} 
-              isAssistantOpen={isAssistantOpen}
-              onAssistantToggle={() => setIsAssistantOpen(true)} 
-            />
-          )
-      )}
-      
+    <div className="flex h-screen w-full relative">
+      {!isVerticalLayout &&
+        (isAssistantOpen ? (
+          <AIAssistant
+            onClose={() => setIsAssistantOpen(false)}
+            onWidthChange={() => {}}
+          />
+        ) : (
+          <Sidebar
+            isVerticalLayout={isVerticalLayout}
+            isAssistantOpen={isAssistantOpen}
+            onAssistantToggle={() => setIsAssistantOpen(true)}
+          />
+        ))}
+
       <div className="flex flex-col flex-1 overflow-hidden relative">
         {isVerticalLayout ? (
           <div className="flex flex-1 overflow-hidden">
@@ -95,27 +106,30 @@ const Index: React.FC<IndexProps> = ({ profile, allProfiles, onProfileSwitch }) 
               isVertical={isVerticalLayout}
               onLayoutToggle={() => setIsVerticalLayout(!isVerticalLayout)}
             />
+
             <div className="flex-1 flex flex-col overflow-hidden">
-            <BrowserToolbar
-              searchValue={tabSearch[activeTabId] ?? ""}
-              onSearchChange={(value) =>
-                setTabSearch((prev) => ({ ...prev, [activeTabId]: value }))
-              }
-              activeTabId={activeTabId}
-              activeProfileId={profile._id}        
-              profileName={profile.username}       
-              allProfiles={allProfiles.map(p => ({ id: p._id, name: p.username }))}
-              onProfileSwitch={(id, name) => {
-                const matchedProfile = allProfiles.find(p => p._id === id);
-                if (matchedProfile) onProfileSwitch(matchedProfile);
-                else onProfileSwitch({ _id: '', username: '', email: '' }); 
-              }}
-            />
-
-
-            <TabContent key={activeTabId}/>
+              <BrowserToolbar
+                searchValue={tabSearch[activeTabId] ?? ""}
+                onSearchChange={(value) =>
+                  setTabSearch((prev) => ({ ...prev, [activeTabId]: value }))
+                }
+                activeTabId={activeTabId}
+                activeProfileId={profile._id}
+                profileName={profile.username}
+                allProfiles={localProfiles.map((p) => ({
+                  id: p._id,
+                  name: p.username,
+                }))}
+                onProfileSwitch={(id) => handleProfileSwitch(id)}
+              />
+              <TabContent key={activeTabId} />
             </div>
-            <Sidebar isVerticalLayout={isVerticalLayout} isAssistantOpen={false} onAssistantToggle={() => {}} /> 
+
+            <Sidebar
+              isVerticalLayout={isVerticalLayout}
+              isAssistantOpen={false}
+              onAssistantToggle={() => {}}
+            />
           </div>
         ) : (
           <>
@@ -128,27 +142,26 @@ const Index: React.FC<IndexProps> = ({ profile, allProfiles, onProfileSwitch }) 
               isVertical={isVerticalLayout}
               onLayoutToggle={() => setIsVerticalLayout(!isVerticalLayout)}
             />
+
             <BrowserToolbar
               searchValue={tabSearch[activeTabId] ?? ""}
               onSearchChange={(value) =>
                 setTabSearch((prev) => ({ ...prev, [activeTabId]: value }))
               }
               activeTabId={activeTabId}
-              activeProfileId={profile._id}       
-              profileName={profile.username}       
-              allProfiles={allProfiles.map(p => ({ id: p._id, name: p.username }))} 
-              onProfileSwitch={(id, name) => {
-                const matchedProfile = allProfiles.find(p => p._id === id);
-                if (matchedProfile) onProfileSwitch(matchedProfile);
-                else onProfileSwitch({ _id: '', username: '', email: '' });
-              }}
+              activeProfileId={profile._id}
+              profileName={profile.username}
+              allProfiles={localProfiles.map((p) => ({
+                id: p._id,
+                name: p.username,
+              }))}
+              onProfileSwitch={(id) => handleProfileSwitch(id)}
             />
 
-            <TabContent key={activeTabId}/>
+            <TabContent key={activeTabId} />
           </>
         )}
       </div>
-      
     </div>
   );
 };

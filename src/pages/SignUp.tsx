@@ -9,15 +9,17 @@ import { z } from "zod";
 import { ActiveProfile } from "./Welcome";
 import { useNavigate } from "react-router-dom";
 
-const signupSchema = z.object({
-  username: z.string().min(3).max(20),
-  email: z.string().email(),
-  password: z.string().min(8).regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+const signupSchema = z
+  .object({
+    username: z.string().min(3).max(20),
+    email: z.string().email(),
+    password: z.string().min(8).regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
 interface SignupProps {
   onProfileSelected: (profile: ActiveProfile) => void;
@@ -61,7 +63,14 @@ export default function Signup({ onProfileSelected }: SignupProps) {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Failed to create account");
 
+      // Save active profile
       localStorage.setItem("activeProfile", JSON.stringify(data.profile));
+
+      // Add to local profiles array
+      const existing = JSON.parse(localStorage.getItem("profiles") || "[]");
+      const updated = [...existing.filter((p: ActiveProfile) => p._id !== data.profile._id), data.profile];
+      localStorage.setItem("profiles", JSON.stringify(updated));
+
       onProfileSelected(data.profile);
       navigate("/");
       toast({ title: "Account created!", description: `Welcome ${data.profile.username}` });
@@ -81,17 +90,25 @@ export default function Signup({ onProfileSelected }: SignupProps) {
 
         <Card className="shadow-card-hover border border-border/50">
           <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">Create Account</CardTitle>
+            <CardTitle className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              Create Account
+            </CardTitle>
             <CardDescription>Join Pingcat</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              {["username","email","password","confirmPassword"].map((field) => (
+              {["username", "email", "password", "confirmPassword"].map((field) => (
                 <div key={field} className="space-y-2">
-                  <Label htmlFor={field}>{field === "confirmPassword" ? "Confirm Password" : field}</Label>
+                  <Label htmlFor={field}>
+                    {field === "confirmPassword" ? "Confirm Password" : field}
+                  </Label>
                   <Input
-                    id={field} name={field} type={field.includes("password") ? "password" : "text"}
-                    value={(formData as any)[field]} onChange={handleChange} required
+                    id={field}
+                    name={field}
+                    type={field.includes("password") ? "password" : "text"}
+                    value={(formData as any)[field]}
+                    onChange={handleChange}
+                    required
                   />
                   {errors[field] && <p className="text-sm text-destructive">{errors[field]}</p>}
                 </div>

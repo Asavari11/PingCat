@@ -13,7 +13,7 @@ interface LoginProps {
 }
 
 export default function Login({ onProfileSelected }: LoginProps) {
-  const navigate=useNavigate();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({ emailOrUsername: "", password: "" });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -37,7 +37,14 @@ export default function Login({ onProfileSelected }: LoginProps) {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Login failed");
 
+      // Save active profile
       localStorage.setItem("activeProfile", JSON.stringify(data.profile));
+
+      // Add to local profiles array
+      const existing = JSON.parse(localStorage.getItem("profiles") || "[]");
+      const updated = [...existing.filter((p: ActiveProfile) => p._id !== data.profile._id), data.profile];
+      localStorage.setItem("profiles", JSON.stringify(updated));
+
       onProfileSelected(data.profile);
       navigate("/");
       toast({ title: "Welcome back!", description: `Logged in as ${data.profile.username}` });
@@ -51,13 +58,15 @@ export default function Login({ onProfileSelected }: LoginProps) {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-8">
       <div className="w-full max-w-md space-y-6">
-        <Button variant="ghost" onClick={() => window.location.href = "/"} className="mb-4">
+        <Button variant="ghost" onClick={() => (window.location.href = "/")} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Profiles
         </Button>
 
         <Card className="shadow-card-hover border border-border/50">
           <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">Welcome Back</CardTitle>
+            <CardTitle className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              Welcome Back
+            </CardTitle>
             <CardDescription>Login to your Pingcat account</CardDescription>
           </CardHeader>
           <CardContent>
@@ -65,22 +74,45 @@ export default function Login({ onProfileSelected }: LoginProps) {
               <div className="space-y-2">
                 <Label htmlFor="emailOrUsername">Username or Email</Label>
                 <Input
-                  id="emailOrUsername" name="emailOrUsername" value={formData.emailOrUsername}
-                  onChange={handleChange} required
+                  id="emailOrUsername"
+                  name="emailOrUsername"
+                  value={formData.emailOrUsername}
+                  onChange={handleChange}
+                  required
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
-                  id="password" name="password" type="password" value={formData.password}
-                  onChange={handleChange} required
+                  id="password"
+                  name="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
                 />
               </div>
 
-              <Button type="submit" className="w-full bg-gradient-primary hover:opacity-90" disabled={loading}>
+              <Button
+                type="submit"
+                className="w-full bg-gradient-primary hover:opacity-90"
+                disabled={loading}
+              >
                 {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : "Login"}
               </Button>
+
+              {/* Forgot password link */}
+              <div className="text-right mt-2">
+                <Button
+                  variant="link"
+                  type="button"
+                  className="text-sm text-primary hover:underline"
+                  onClick={() => navigate("/forgot-password")}
+                >
+                  Forgot password?
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>

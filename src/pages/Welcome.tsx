@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, LogIn } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { ProfileCard } from "@/components/ProfileCard";
 import { useNavigate } from "react-router-dom";
 
@@ -21,35 +20,12 @@ export default function Welcome({ onProfileSelected }: WelcomeProps) {
   const navigate = useNavigate();
   const [profiles, setProfiles] = useState<ActiveProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
-    loadProfiles();
+    const savedProfiles = JSON.parse(localStorage.getItem("profiles") || "[]");
+    setProfiles(savedProfiles);
+    setLoading(false);
   }, []);
-
-  const loadProfiles = async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profiles`);
-      if (!response.ok) throw new Error("Failed to load profiles");
-
-      const data = await response.json();
-
-      const sorted = data.sort(
-        (a: ActiveProfile, b: ActiveProfile) =>
-          new Date(b.created_at || "").getTime() - new Date(a.created_at || "").getTime()
-      );
-
-      setProfiles(sorted);
-    } catch (error: any) {
-      toast({
-        title: "Error loading profiles",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleProfileSelect = (profile: ActiveProfile) => {
     localStorage.setItem("activeProfile", JSON.stringify(profile));
