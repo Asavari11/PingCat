@@ -27,6 +27,18 @@ export default function Welcome({ onProfileSelected }: WelcomeProps) {
     setLoading(false);
   }, []);
 
+  const handleDelete = (id: string) => {
+    const should = window.confirm("Delete this profile? This action cannot be undone.");
+    if (!should) return;
+    const updated = profiles.filter((p) => p._id !== id);
+    setProfiles(updated);
+    localStorage.setItem("profiles", JSON.stringify(updated));
+    const active = JSON.parse(localStorage.getItem("activeProfile") || "null");
+    if (active && active._id === id) {
+      localStorage.removeItem("activeProfile");
+    }
+  };
+
   const handleProfileSelect = (profile: ActiveProfile) => {
     localStorage.setItem("activeProfile", JSON.stringify(profile));
     onProfileSelected(profile);
@@ -41,7 +53,7 @@ export default function Welcome({ onProfileSelected }: WelcomeProps) {
       </div>
 
       <div className="bg-black/20 p-6 rounded-2xl flex flex-wrap justify-center gap-6 max-w-fit w-full">
-        {loading ? (
+          {loading ? (
           <div className="text-white/60">Loading profiles...</div>
         ) : profiles.length > 0 ? (
           profiles.map((profile) => (
@@ -51,6 +63,7 @@ export default function Welcome({ onProfileSelected }: WelcomeProps) {
               email={profile.email}
               photoUrl={profile.photo_url}
               onClick={() => handleProfileSelect(profile)}
+              onDelete={() => handleDelete(profile._id)}
             />
           ))
         ) : (

@@ -98,7 +98,7 @@ const ManageProfiles = () => {
               <CardTitle className="text-base flex items-center gap-2">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={profile.avatarUrl || ""} />
-                  <AvatarFallback>{profile.name.charAt(0).toUpperCase()}</AvatarFallback>
+                  <AvatarFallback>{profile.name && profile.name.length > 0 ? profile.name.charAt(0).toUpperCase() : "?"}</AvatarFallback>
                 </Avatar>
                 {profile.name}
               </CardTitle>

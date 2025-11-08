@@ -50,25 +50,25 @@ export const ShortcutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       {/* Simple custom popup */}
       {showPopup && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-2xl shadow-lg w-80 text-center">
+          <div className="bg-background p-6 rounded-lg shadow-xl w-80 text-center border border-border">
             <h2 className="text-lg font-semibold mb-3">Add Shortcut</h2>
             <input
               type="text"
               placeholder="Enter website URL"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              className="border w-full p-2 rounded mb-4 outline-none"
+              className="border w-full p-2 rounded mb-4 outline-none bg-input text-foreground"
             />
             <div className="flex justify-center gap-3">
               <button
                 onClick={() => setShowPopup(false)}
-                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+                className="px-4 py-2 rounded bg-background/50 hover:bg-background/60 border border-border"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirm}
-                className="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600"
+                className="px-4 py-2 rounded bg-primary text-primary-foreground hover:opacity-90"
               >
                 Add
               </button>

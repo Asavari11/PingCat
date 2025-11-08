@@ -6,7 +6,7 @@ import { User } from "../models/User";
 
 const router = Router();
 
-// 🟢 SIGNUP
+
 router.post("/signup", async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -35,7 +35,7 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-// 🟢 LOGIN
+
 router.post("/login", async (req, res) => {
   try {
     const { emailOrUsername, password } = req.body;
@@ -62,7 +62,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// 🟡 FORGOT PASSWORD
+
 router.post("/forgot-password", async (req, res) => {
   const { username } = req.body;
 
@@ -105,7 +105,7 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
-// 🟠 RESET PASSWORD
+
 router.post("/reset-password", async (req, res) => {
   const { token, newPassword } = req.body;
 

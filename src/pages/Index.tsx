@@ -34,7 +34,7 @@ const Index: React.FC<IndexProps> = ({ profile, allProfiles, onProfileSwitch }) 
   const [theme, setTheme] = useState<'default' | 'incognito'>('default');
   const tabContentRefs = useRef<Record<string, TabContentRef | null>>({});
 
-  // Load profiles from localStorage
+  
   const [localProfiles, setLocalProfiles] = useState<ActiveProfile[]>([]);
 
   useEffect(() => {
@@ -50,7 +50,7 @@ const Index: React.FC<IndexProps> = ({ profile, allProfiles, onProfileSwitch }) 
     }
   }, [localProfiles]);
 
-  // Keyboard shortcuts for tab management
+  
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey) {
@@ -62,40 +62,40 @@ const Index: React.FC<IndexProps> = ({ profile, allProfiles, onProfileSwitch }) 
           handleTabClose(activeTabId);
         } else if (event.key === 'h' || event.key === 'H') {
           event.preventDefault();
-          // Navigate to history page
+          
           window.location.href = '/history';
         } else if (event.key === 'j' || event.key === 'J') {
           event.preventDefault();
-          // Navigate to downloads page
+          
           window.location.href = '/downloads';
         }
       }
 
-      // Incognito shortcut: Ctrl+Shift+N
+      
       if (event.ctrlKey && event.shiftKey && (event.key === 'n' || event.key === 'N')) {
         event.preventDefault();
-        // Toggle incognito mode
+        
         handleIncognitoToggle();
       }
 
-      // Window management shortcuts (Ctrl+Alt)
+     
       if (event.ctrlKey && event.altKey) {
         if (event.key === 't' || event.key === 'T') {
           event.preventDefault();
-          // Open new window
+          
           if ((window as any).electronAPI && (window as any).electronAPI.createNewWindow) {
             (window as any).electronAPI.createNewWindow();
           } else {
-            // Fallback for web environment
+           
             window.open(window.location.href, "_blank", "width=1200,height=800");
           }
         } else if (event.key === 'w' || event.key === 'W') {
           event.preventDefault();
-          // Close current window
+          
           if ((window as any).electronAPI && (window as any).electronAPI.close) {
             (window as any).electronAPI.close();
           } else {
-            // Fallback for non-Electron environments
+            
             window.close();
           }
         }
@@ -119,11 +119,11 @@ const Index: React.FC<IndexProps> = ({ profile, allProfiles, onProfileSwitch }) 
 
   const handleTabClose = (tabId: string) => {
     if (tabs.length === 1) {
-      // Check if there are other windows open before closing
+      
       if ((window as any).electronAPI && (window as any).electronAPI.closeWindow) {
         (window as any).electronAPI.closeWindow();
       } else {
-        // Fallback for non-Electron environments
+       
         window.close();
       }
       return;
@@ -157,7 +157,7 @@ const Index: React.FC<IndexProps> = ({ profile, allProfiles, onProfileSwitch }) 
       if (activeTabRef.canGoBack()) {
         activeTabRef.goBack();
       } else {
-        // Return to initial PingCat screen
+        
         setTabUrl((prev) => ({ ...prev, [activeTabId]: "" }));
         setTabs((prevTabs) =>
           prevTabs.map((tab) =>
@@ -199,17 +199,17 @@ const Index: React.FC<IndexProps> = ({ profile, allProfiles, onProfileSwitch }) 
 
     let finalUrl: string;
     if (isUrl) {
-      // Ensure it has protocol
+      
       finalUrl = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
     } else {
-      // Treat as search query - use Google
+      
       finalUrl = `https://www.google.com/search?q=${encodeURIComponent(url)}`;
     }
 
-    // Update the tab URL and navigate
+   
     setTabUrl((prev) => ({ ...prev, [activeTabId]: finalUrl }));
 
-    // Update tab title to show the URL or search term
+    
     setTabs((prevTabs) =>
       prevTabs.map((tab) =>
         tab.id === activeTabId
@@ -218,10 +218,9 @@ const Index: React.FC<IndexProps> = ({ profile, allProfiles, onProfileSwitch }) 
       )
     );
 
-    // Add to history (only if not in incognito mode)
+    
     if (!isIncognitoMode) {
-      // We'll add the history entry when the page actually loads
-      // This will be handled in TabContent component
+      
     }
   };
 
@@ -229,14 +228,14 @@ const Index: React.FC<IndexProps> = ({ profile, allProfiles, onProfileSwitch }) 
     const nextIncognito = !isIncognitoMode;
     setIsIncognitoMode(nextIncognito);
     setTheme(nextIncognito ? 'incognito' : 'default');
-    // Clear all tabs and start fresh when entering incognito mode
+    
     if (nextIncognito) {
       setTabs([{ id: "incognito-1", title: "New Incognito Tab" }]);
       setActiveTabId("incognito-1");
       setTabSearch({ "incognito-1": "" });
       setTabUrl({ "incognito-1": "" });
     } else {
-      // When exiting incognito, clear all data and start fresh
+      
       setTabs([{ id: "tab-1", title: "New Tab" }]);
       setActiveTabId("tab-1");
       setTabSearch({ "tab-1": "" });
@@ -247,7 +246,7 @@ const Index: React.FC<IndexProps> = ({ profile, allProfiles, onProfileSwitch }) 
   const handlePageLoad = (url: string, title: string, favicon?: string) => {
     console.log('handlePageLoad called with:', { url, title, favicon });
 
-    // Extract domain from URL for fallback title
+    
     let displayTitle = title?.trim();
     if (!displayTitle && url) {
       try {
@@ -266,7 +265,7 @@ const Index: React.FC<IndexProps> = ({ profile, allProfiles, onProfileSwitch }) 
 
     console.log('Final display title:', displayTitle);
 
-    // Update tab title and favicon
+    
     setTabs((prevTabs) =>
       prevTabs.map((tab) => {
         if (tab.id === activeTabId) {
@@ -277,7 +276,7 @@ const Index: React.FC<IndexProps> = ({ profile, allProfiles, onProfileSwitch }) 
       })
     );
 
-    // Add to history when page loads (only if not in incognito mode)
+    
     if (!isIncognitoMode && url && title) {
       historyService.addEntry({
         url: url,
@@ -320,7 +319,7 @@ const Index: React.FC<IndexProps> = ({ profile, allProfiles, onProfileSwitch }) 
   const toggleBookmark = (url?: string) => {
     const target = url || currentUrl;
     if (!target) {
-      // If no URL, just show the bookmarks list
+      
       openBookmarks();
       return;
     }
@@ -329,9 +328,9 @@ const Index: React.FC<IndexProps> = ({ profile, allProfiles, onProfileSwitch }) 
       if (exists) {
         return prev.filter((b) => b.url !== target);
       }
-      // Add bookmark with best-effort title/icon
+     
       const title = tabs.find(t => t.id === activeTabId)?.title || target;
-      // Get favicon from the tab if available
+      
       const tab = tabs.find(t => t.id === activeTabId);
       const favicon = tab?.icon;
       return [...prev, { url: target, title, favicon, id: `bm-${Date.now()}` }];
@@ -339,10 +338,10 @@ const Index: React.FC<IndexProps> = ({ profile, allProfiles, onProfileSwitch }) 
   };
 
   const navigateToUrl = (url: string) => {
-    // Navigate in current tab
+    
     setTabUrl(prev => ({ ...prev, [activeTabId]: url }));
     
-    // Update tab title to URL initially (will be updated when page loads)
+    
     setTabs(prevTabs =>
       prevTabs.map((tab) =>
         tab.id === activeTabId
@@ -351,7 +350,7 @@ const Index: React.FC<IndexProps> = ({ profile, allProfiles, onProfileSwitch }) 
       )
     );
 
-    setIsBookmarksOpen(false); // Close dialog after navigating
+    setIsBookmarksOpen(false); 
   };
 
   const openBookmarks = () => {

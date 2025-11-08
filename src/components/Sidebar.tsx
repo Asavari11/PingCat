@@ -1,19 +1,5 @@
-import { Download } from "lucide-react";
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => navigate('/downloads')}
-                    >
-                        <Download className="h-5 w-5" />
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right">Downloads</TooltipContent>
-            </Tooltip>
 
-
-import { Settings, Bookmark, Sparkles, Terminal } from "lucide-react";
+import { Bookmark, Sparkles, Terminal } from "lucide-react";
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import React from 'react';
@@ -38,18 +24,8 @@ export const Sidebar = ({ isVerticalLayout, isAssistantOpen, onAssistantToggle, 
     const navigate = useNavigate();
 
     if (isVerticalLayout) {
-        return (
-            <div className="fixed bottom-4 left-4 z-50">
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button variant="outline" size="icon" className="rounded-full" onClick={() => navigate('/settings')}>
-                            <Settings className="h-4 w-4" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="right">Settings</TooltipContent>
-                </Tooltip>
-            </div>
-        );
+        // vertical layout no longer shows a dedicated settings button
+        return null;
     }
 
     return (
@@ -99,19 +75,6 @@ export const Sidebar = ({ isVerticalLayout, isAssistantOpen, onAssistantToggle, 
                     </Button>
                 </TooltipTrigger>
                 <TooltipContent side="right">Bookmarks</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => navigate('/settings')}
-                    >
-                        <Settings className="h-5 w-5" />
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right">Settings</TooltipContent>
             </Tooltip>
         </div>
     );

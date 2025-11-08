@@ -137,12 +137,10 @@ User query: ${query}
             response.actions?.push(action);
           }
         } catch (e) {
-          // Ignore parsing errors for non-JSON matches
         }
       });
     }
 
-    // Extract suggestions from the response
     const suggestionPatterns = [
       /you could try:?\s*((?:[-•*]\s*[^•\n]+\n*)+)/i,
       /suggestions?:?\s*((?:[-•*]\s*[^•\n]+\n*)+)/i,

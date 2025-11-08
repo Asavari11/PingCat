@@ -27,19 +27,19 @@ export interface AIResponse {
 class AIService {
   private context: AIContext = {};
 
-  // Update context with current browser state
+  
   updateContext(context: AIContext) {
     this.context = { ...this.context, ...context };
   }
 
-  // Process user query and generate intelligent response
+  
   async processQuery(query: string): Promise<AIResponse> {
     console.log('Processing query:', query);
     
-    // Clean and normalize the query
+    
     const normalizedQuery = query.trim();
     
-    // If query looks like a command (starts with common command words)
+    
     const commandWords = ['go to', 'open', 'search', 'find', 'show', 'settings', 'history'];
     const isLikelyCommand = commandWords.some(word => 
       normalizedQuery.toLowerCase().startsWith(word.toLowerCase())
@@ -48,7 +48,7 @@ class AIService {
     if (isLikelyCommand) {
       console.log('Query appears to be a command, checking built-in handlers...');
       
-      // Check for built-in commands
+      
       if (this.isNavigationQuery(normalizedQuery)) {
         return this.handleNavigationQuery(normalizedQuery);
       }
@@ -74,19 +74,19 @@ class AIService {
       }
     }
 
-    // For non-command queries or if command handling failed, use Gemini
+    
     console.log('Using Gemini for response...');
     try {
       const geminiResponse = await aiServerConnector.queryGemini(query);
       console.log('Gemini response:', geminiResponse);
       
-      // If there was an error, fall back to the rule-based system
+      
       if (geminiResponse.error) {
         console.warn('Gemini query failed:', geminiResponse.error);
         return this.handleGeneralQuery(query);
       }
 
-      // Return Gemini's response with enhanced suggestions
+      
       return {
         text: geminiResponse.text,
         suggestions: [
@@ -94,7 +94,7 @@ class AIService {
           'Ask another question',
           this.generateContextualSuggestion(query)
         ],
-        // Add a search action for convenience
+        
         actions: [{
           type: 'search',
           label: `Search for "${query}"`,
@@ -103,59 +103,59 @@ class AIService {
       };
     } catch (error) {
       console.error('Failed to query Gemini:', error);
-      // Fall back to rule-based system
+      
       return this.handleGeneralQuery(query);
     }
 
-    // Fallback to rule-based system
+    
     const lowerQuery = query.toLowerCase().trim();
 
-    // File system operations
+    
     if (this.isFileSystemQuery(lowerQuery)) {
       return this.handleFileSystemQuery(query);
     }
 
-    // Page summarization
+    
     if (this.isSummarizeQuery(lowerQuery)) {
       return this.handleSummarizeQuery(query);
     }
 
-    // Browser navigation commands
+    
     if (this.isNavigationQuery(lowerQuery)) {
       return this.handleNavigationQuery(query);
     }
 
-    // Search-related queries
+    
     if (this.isSearchQuery(lowerQuery)) {
       return this.handleSearchQuery(query);
     }
 
-    // Settings and configuration queries
+   
     if (this.isSettingsQuery(lowerQuery)) {
       return this.handleSettingsQuery(query);
     }
 
-    // History-related queries
+    
     if (this.isHistoryQuery(lowerQuery)) {
       return this.handleHistoryQuery(query);
     }
 
-    // Productivity and tips
+    
     if (this.isProductivityQuery(lowerQuery)) {
       return this.handleProductivityQuery(query);
     }
 
-    // Current page analysis
+    
     if (this.isPageAnalysisQuery(lowerQuery)) {
       return this.handlePageAnalysisQuery(query);
     }
 
-    // General browser help
+    
     if (this.isHelpQuery(lowerQuery)) {
       return this.handleHelpQuery(query);
     }
 
-    // Default response for unrecognized queries
+    
     return this.handleGeneralQuery(query);
   }
 
@@ -329,11 +329,11 @@ class AIService {
 
   private handleProductivityQuery(query: string): AIResponse {
     const tips = [
-      "💡 Use Ctrl+T to open new tabs quickly",
-      "💡 Press Ctrl+H to access your browsing history",
-      "💡 Use Ctrl+Shift+T to reopen recently closed tabs",
-      "💡 Right-click links to open them in new tabs",
-      "💡 Use Ctrl+L to quickly focus the address bar"
+      " Use Ctrl+T to open new tabs quickly",
+      " Press Ctrl+H to access your browsing history",
+      " Use Ctrl+Shift+T to reopen recently closed tabs",
+      " Right-click links to open them in new tabs",
+      " Use Ctrl+L to quickly focus the address bar"
     ];
 
     if (query.includes('shortcuts') || query.includes('keyboard')) {
@@ -394,9 +394,9 @@ Try asking me things like:
   }
 
   private handleGeneralQuery(query: string): AIResponse {
-    // Try to interpret as a potential website or search
+    
     if (query.includes('.') && !query.includes(' ')) {
-      // Looks like a domain
+     
       return {
         text: `Did you mean to visit "${query}"? I can navigate there for you.`,
         actions: [{
@@ -408,7 +408,7 @@ Try asking me things like:
       };
     }
 
-    // Default search suggestion
+    
     return {
       text: `I'm not sure what you mean by "${query}". Would you like me to search for it, or try asking about browser features, navigation, or settings?`,
       actions: [{
@@ -421,7 +421,7 @@ Try asking me things like:
   }
 
   private handleFileSystemQuery(query: string): AIResponse {
-    // Extract folder path from query
+    
     const folderPatterns = [
       /(?:open folder|open directory|show folder)\s+(.+)/i,
       /(?:open|show)\s+(.+)\s+(?:folder|directory)/i
@@ -437,7 +437,6 @@ Try asking me things like:
       }
     }
 
-    // Handle common folder names
     const commonFolders: { [key: string]: string } = {
       'desktop': 'C:/Users/' + (process.env.USERNAME || 'User') + '/Desktop',
       'documents': 'C:/Users/' + (process.env.USERNAME || 'User') + '/Documents',
@@ -523,27 +522,22 @@ Try asking me things like:
   private generateContextualSuggestion(query: string): string {
     const lowerQuery = query.toLowerCase();
     
-    // Location-based queries
     if (lowerQuery.includes('where') || lowerQuery.includes('location')) {
       return 'Show me directions';
     }
     
-    // Definition or explanation queries
     if (lowerQuery.startsWith('what') || lowerQuery.startsWith('how')) {
       return 'Learn more about this topic';
     }
     
-    // Historical queries
     if (lowerQuery.includes('when') || lowerQuery.includes('history')) {
       return 'Show historical timeline';
     }
     
-    // Comparison queries
     if (lowerQuery.includes('vs') || lowerQuery.includes('versus') || lowerQuery.includes('compare')) {
       return 'Compare with alternatives';
     }
     
-    // Default suggestion
     return 'Find related information';
   }
 }

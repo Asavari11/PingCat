@@ -31,6 +31,8 @@ export default function Signup({ onProfileSelected }: SignupProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const API_URL = (import.meta.env.VITE_API_URL as string) || "http://localhost:5000";
+  const [showPasswords, setShowPasswords] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -54,7 +56,7 @@ export default function Signup({ onProfileSelected }: SignupProps) {
 
     setLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/signup`, {
+      const response = await fetch(`${API_URL}/api/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -63,10 +65,10 @@ export default function Signup({ onProfileSelected }: SignupProps) {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Failed to create account");
 
-      // Save active profile
+      
       localStorage.setItem("activeProfile", JSON.stringify(data.profile));
 
-      // Add to local profiles array
+      
       const existing = JSON.parse(localStorage.getItem("profiles") || "[]");
       const updated = [...existing.filter((p: ActiveProfile) => p._id !== data.profile._id), data.profile];
       localStorage.setItem("profiles", JSON.stringify(updated));
@@ -97,22 +99,34 @@ export default function Signup({ onProfileSelected }: SignupProps) {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              {["username", "email", "password", "confirmPassword"].map((field) => (
-                <div key={field} className="space-y-2">
-                  <Label htmlFor={field}>
-                    {field === "confirmPassword" ? "Confirm Password" : field}
-                  </Label>
-                  <Input
-                    id={field}
-                    name={field}
-                    type={field.includes("password") ? "password" : "text"}
-                    value={(formData as any)[field]}
-                    onChange={handleChange}
-                    required
-                  />
-                  {errors[field] && <p className="text-sm text-destructive">{errors[field]}</p>}
-                </div>
-              ))}
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input id="username" name="username" type="text" value={formData.username} onChange={handleChange} required />
+                {errors.username && <p className="text-sm text-destructive">{errors.username}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" name="email" type="text" value={formData.email} onChange={handleChange} required />
+                {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input id="password" name="password" type={showPasswords ? 'text' : 'password'} value={formData.password} onChange={handleChange} required />
+                {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input id="confirmPassword" name="confirmPassword" type={showPasswords ? 'text' : 'password'} value={formData.confirmPassword} onChange={handleChange} required />
+                {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
+              </div>
+
+              <div className="flex items-center gap-2 text-sm">
+                <input id="showPasswords" type="checkbox" checked={showPasswords} onChange={() => setShowPasswords(s => !s)} />
+                <label htmlFor="showPasswords" className="select-none">Show passwords</label>
+              </div>
               <Button type="submit" className="w-full bg-gradient-primary hover:opacity-90" disabled={loading}>
                 {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : "Create Account"}
               </Button>

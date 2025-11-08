@@ -12,7 +12,6 @@ class DownloadService {
   private readonly STORAGE_KEY = 'browser_downloads';
   private readonly MAX_ENTRIES = 1000;
 
-  // Get all download entries
   getDownloads(): DownloadEntry[] {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
@@ -23,7 +22,6 @@ class DownloadService {
     }
   }
 
-  // Add a new download entry
   addEntry(entry: Omit<DownloadEntry, 'id' | 'timestamp'>): void {
     try {
       const downloads = this.getDownloads();
@@ -33,10 +31,8 @@ class DownloadService {
         timestamp: Date.now(),
       };
 
-      // Add new entry at the beginning
       downloads.unshift(newEntry);
 
-      // Limit the number of entries
       const limitedDownloads = downloads.slice(0, this.MAX_ENTRIES);
 
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(limitedDownloads));
@@ -45,7 +41,6 @@ class DownloadService {
     }
   }
 
-  // Search download entries
   searchDownloads(query: string): DownloadEntry[] {
     const downloads = this.getDownloads();
     const lowerQuery = query.toLowerCase();
@@ -56,7 +51,6 @@ class DownloadService {
     );
   }
 
-  // Filter by date range
   filterByDate(startDate: Date, endDate: Date): DownloadEntry[] {
     const downloads = this.getDownloads();
     const startTime = startDate.getTime();
@@ -67,7 +61,6 @@ class DownloadService {
     );
   }
 
-  // Clear all downloads
   clearDownloads(): void {
     try {
       localStorage.removeItem(this.STORAGE_KEY);
@@ -76,7 +69,6 @@ class DownloadService {
     }
   }
 
-  // Get downloads grouped by date
   getDownloadsGroupedByDate(): { [date: string]: DownloadEntry[] } {
     const downloads = this.getDownloads();
     const grouped: { [date: string]: DownloadEntry[] } = {};
@@ -92,12 +84,10 @@ class DownloadService {
     return grouped;
   }
 
-  // Get recent downloads (last N entries)
   getRecentDownloads(limit: number = 50): DownloadEntry[] {
     return this.getDownloads().slice(0, limit);
   }
 
-  // Format file size
   formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;

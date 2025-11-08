@@ -23,13 +23,37 @@ export const WebView = forwardRef<WebViewRef, WebViewProps & { onPageLoad?: (url
 
   useImperativeHandle(ref, () => ({
     goBack: () => {
-      if (webviewRef.current && isReady) {
-        webviewRef.current.goBack();
+      try {
+        if (webviewRef.current && isReady) {
+          // Prefer built-in API
+          if (typeof webviewRef.current.goBack === 'function') {
+            webviewRef.current.goBack();
+            return;
+          }
+          // Fallback to history.back()
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          webviewRef.current.executeJavaScript && webviewRef.current.executeJavaScript('history.back()');
+        }
+      } catch (e) {
+        console.error('goBack fallback failed:', e);
       }
     },
     goForward: () => {
-      if (webviewRef.current && isReady) {
-        webviewRef.current.goForward();
+      try {
+        if (webviewRef.current && isReady) {
+          // Prefer built-in API
+          if (typeof webviewRef.current.goForward === 'function') {
+            webviewRef.current.goForward();
+            return;
+          }
+          // Fallback to history.forward()
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          webviewRef.current.executeJavaScript && webviewRef.current.executeJavaScript('history.forward()');
+        }
+      } catch (e) {
+        console.error('goForward fallback failed:', e);
       }
     },
     reload: () => {
@@ -38,10 +62,20 @@ export const WebView = forwardRef<WebViewRef, WebViewProps & { onPageLoad?: (url
       }
     },
     canGoBack: () => {
-      return webviewRef.current && isReady ? webviewRef.current.canGoBack() : false;
+      try {
+        return webviewRef.current && isReady && typeof webviewRef.current.canGoBack === 'function' ? webviewRef.current.canGoBack() : false;
+      } catch (e) {
+        console.error('canGoBack check failed:', e);
+        return false;
+      }
     },
     canGoForward: () => {
-      return webviewRef.current && isReady ? webviewRef.current.canGoForward() : false;
+      try {
+        return webviewRef.current && isReady && typeof webviewRef.current.canGoForward === 'function' ? webviewRef.current.canGoForward() : false;
+      } catch (e) {
+        console.error('canGoForward check failed:', e);
+        return false;
+      }
     },
     getURL: () => {
       return webviewRef.current && isReady ? webviewRef.current.getURL() : '';

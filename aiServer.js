@@ -2,7 +2,7 @@
 
 import { GoogleGenAI } from "@google/genai";
 
-// Pass the API key directly here
+
 const ai = new GoogleGenAI({ apiKey: "AIzaSyA7x4GdafR8u16AxlTdCxSnd4QKP2Gb9a4" });
 
 async function main() {
@@ -14,7 +14,7 @@ async function main() {
       contents: query,
     });
 
-    // Print text if available otherwise stringify whole response
+    
     const text = response?.text || response?.candidates?.[0]?.content?.[0]?.text || JSON.stringify(response);
     console.log(text);
   } catch (error) {

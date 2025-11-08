@@ -41,16 +41,29 @@ const AppContent = () => {
     if (stored) {
       const parsed = JSON.parse(stored);
       setProfiles(parsed);
-      const lastActive = localStorage.getItem("activeProfile");
-      if (lastActive) {
-        const found = parsed.find((p: ActiveProfile) => p._id === lastActive);
-        if (found) setActiveProfile(found);
+      const lastActiveId = localStorage.getItem("activeProfile");
+      if (lastActiveId) {
+        const found = parsed.find((p: ActiveProfile) => p._id === lastActiveId);
+        if (found) {
+          setActiveProfile(found);
+        } else {
+          setActiveProfile(null);
+        }
+      } else {
+        setActiveProfile(null);
       }
+    } else {
+      setProfiles([]);
+      setActiveProfile(null);
     }
   }, []);
 
   useEffect(() => {
-    if (activeProfile) localStorage.setItem("activeProfile", activeProfile._id);
+    if (activeProfile) {
+      localStorage.setItem("activeProfile", activeProfile._id);
+    } else {
+      localStorage.removeItem("activeProfile");
+    }
   }, [activeProfile]);
 
   const handleProfileSelected = (profile: ActiveProfile) => {
@@ -66,7 +79,6 @@ const AppContent = () => {
     if (profile) setActiveProfile(profile);
   };
 
-  // prevent redirecting away when on manage-profiles
   const isManagePage = location.pathname === "/manage-profiles";
 
   return (

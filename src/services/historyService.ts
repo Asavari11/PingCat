@@ -10,7 +10,6 @@ class HistoryService {
   private readonly STORAGE_KEY = 'browser_history';
   private readonly MAX_ENTRIES = 1000;
 
-  // Get all history entries
   getHistory(): HistoryEntry[] {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
@@ -21,7 +20,6 @@ class HistoryService {
     }
   }
 
-  // Add a new history entry
   addEntry(entry: Omit<HistoryEntry, 'id' | 'timestamp'>): void {
     try {
       const history = this.getHistory();
@@ -31,13 +29,10 @@ class HistoryService {
         timestamp: Date.now(),
       };
 
-      // Remove duplicate URLs (keep the most recent)
       const filteredHistory = history.filter(h => h.url !== entry.url);
 
-      // Add new entry at the beginning
       filteredHistory.unshift(newEntry);
 
-      // Limit the number of entries
       const limitedHistory = filteredHistory.slice(0, this.MAX_ENTRIES);
 
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(limitedHistory));
@@ -46,7 +41,6 @@ class HistoryService {
     }
   }
 
-  // Search history entries
   searchHistory(query: string): HistoryEntry[] {
     const history = this.getHistory();
     const lowerQuery = query.toLowerCase();
@@ -57,7 +51,6 @@ class HistoryService {
     );
   }
 
-  // Filter by date range
   filterByDate(startDate: Date, endDate: Date): HistoryEntry[] {
     const history = this.getHistory();
     const startTime = startDate.getTime();
@@ -68,7 +61,6 @@ class HistoryService {
     );
   }
 
-  // Filter by domain/site
   filterBySite(site: string): HistoryEntry[] {
     const history = this.getHistory();
     const lowerSite = site.toLowerCase();
@@ -78,7 +70,6 @@ class HistoryService {
     );
   }
 
-  // Clear all history
   clearHistory(): void {
     try {
       localStorage.removeItem(this.STORAGE_KEY);
@@ -87,7 +78,6 @@ class HistoryService {
     }
   }
 
-  // Get history grouped by date
   getHistoryGroupedByDate(): { [date: string]: HistoryEntry[] } {
     const history = this.getHistory();
     const grouped: { [date: string]: HistoryEntry[] } = {};
@@ -103,7 +93,6 @@ class HistoryService {
     return grouped;
   }
 
-  // Get recent history (last N entries)
   getRecentHistory(limit: number = 50): HistoryEntry[] {
     return this.getHistory().slice(0, limit);
   }

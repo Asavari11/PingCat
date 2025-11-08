@@ -37,10 +37,10 @@ export default function Login({ onProfileSelected }: LoginProps) {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Login failed");
 
-      // Save active profile
+      
       localStorage.setItem("activeProfile", JSON.stringify(data.profile));
 
-      // Add to local profiles array
+      
       const existing = JSON.parse(localStorage.getItem("profiles") || "[]");
       const updated = [...existing.filter((p: ActiveProfile) => p._id !== data.profile._id), data.profile];
       localStorage.setItem("profiles", JSON.stringify(updated));
@@ -101,8 +101,8 @@ export default function Login({ onProfileSelected }: LoginProps) {
               >
                 {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : "Login"}
               </Button>
-
-              {/* Forgot password link */}
+    
+              {}
               <div className="text-right mt-2">
                 <Button
                   variant="link"

@@ -14,7 +14,7 @@ const Incognito: React.FC = () => {
   const tabContentRefs = useRef<Record<string, TabContentRef | null>>({});
   const { theme } = useTheme();
 
-  // Keyboard shortcuts for tab management
+  
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey) {
@@ -45,7 +45,7 @@ const Incognito: React.FC = () => {
 
   const handleTabClose = (tabId: string) => {
     if (tabs.length === 1) {
-      // Close the entire incognito window if it's the last tab
+      
       window.close();
       return;
     }
@@ -155,7 +155,7 @@ const Incognito: React.FC = () => {
         onTabClose={handleTabClose}
         onTabAdd={handleTabAdd}
         isVertical={false}
-        onLayoutToggle={() => {}} // Incognito doesn't support layout toggle
+        onLayoutToggle={() => {}}
       />
 
       {/* Browser Toolbar */}

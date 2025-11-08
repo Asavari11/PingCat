@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Sparkles, Send, ArrowLeft, ExternalLink, Search, Settings, History, Lightbulb } from 'lucide-react';
 
 import { geminiDirectQuery } from '@/services/geminiDirectAI';
+import { createFolder, openFolder, writeClipboardToFile, listFolder } from '@/services/aiFolderService';
 
 import type { WebViewRef } from './WebView';
 
@@ -80,16 +81,166 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
         setInput('');
         setLoading(true);
 
+        // Simple command parsing: if the user asked to navigate/open/search, handle locally
+        const tryHandleCommand = async (text: string) => {
+            const t = text.trim();
+            // folder commands: make folder <name>, open folder <name>
+            const makeFolderRegex = /^(?:make|create)\s+folder\s+["']?([^"']+)["']?$/i;
+            const openFolderRegex = /^open\s+folder\s+["']?([^"']+)["']?$/i;
+            const writeFileRegex = /^(?:write(?:\s+into|\s+to)?\s+file|save\s+to\s+file)\s+["']?([^"']+)["']?$/i;
+            const listRegex = /^list(?:\s+folder)?(?:\s+( ["']?[^"']+["']?))?$/i;
+            // support: "show contents <folder>" and "show contents of <folder>"
+            const showContentsRegex = /^show\s+contents(?:\s+of)?\s+(["']?[^"']+["']?)$/i;
+            // open/go to <target>
+            const openRegex = /^(?:go to|open)\s+["']?([^"']+)["']?$/i;
+            const mMakeFolder = t.match(makeFolderRegex);
+            if (mMakeFolder) {
+                const name = mMakeFolder[1].trim();
+                const res = await createFolder(name);
+                if (res.ok) {
+                    const reply: Message = { id: Date.now() + 2, text: `Created folder: ${res.path}`, sender: 'ai' };
+                    setMessages(prev => [...prev, reply]);
+                } else {
+                    const reply: Message = { id: Date.now() + 2, text: `Failed to create folder: ${res.error}`, sender: 'ai' };
+                    setMessages(prev => [...prev, reply]);
+                }
+                return true;
+            }
+            
+            const mWriteFile = t.match(writeFileRegex);
+            if (mWriteFile) {
+                const filename = mWriteFile[1].trim();
+                const res = await writeClipboardToFile(filename);
+                if (res.ok) {
+                    const reply: Message = { id: Date.now() + 2, text: `Wrote clipboard content to ${res.path}`, sender: 'ai' };
+                    setMessages(prev => [...prev, reply]);
+                } else {
+                    const reply: Message = { id: Date.now() + 2, text: `Failed to write file: ${res.error}`, sender: 'ai' };
+                    setMessages(prev => [...prev, reply]);
+                }
+                return true;
+            }
+
+            const mList = t.match(listRegex);
+            if (mList) {
+                const folder = mList[1] ? mList[1].trim().replace(/^['"]|['"]$/g, '') : undefined;
+                const res = await listFolder(folder);
+                if (res.ok) {
+                    const entries = res.entries as Array<{name: string, isDirectory: boolean}>;
+                    if (!entries || entries.length === 0) {
+                        const reply: Message = { id: Date.now() + 2, text: `No files or folders found in ${folder ? `aiaccess/${folder}` : 'aiaccess'}.`, sender: 'ai' };
+                        setMessages(prev => [...prev, reply]);
+                        return true;
+                    }
+                    const lines = entries.map(e => `${e.isDirectory ? '[DIR] ' : '[FILE]'} ${e.name}`);
+                    const reply: Message = { id: Date.now() + 2, text: `Contents of ${folder ? `aiaccess/${folder}` : 'aiaccess'}:\n\n` + lines.join('\n'), sender: 'ai' };
+                    setMessages(prev => [...prev, reply]);
+                } else {
+                    const reply: Message = { id: Date.now() + 2, text: `Failed to list folder: ${res.error}`, sender: 'ai' };
+                    setMessages(prev => [...prev, reply]);
+                }
+                return true;
+            }
+
+            // handle "show contents <folder>" (user asked explicitly to show contents)
+            const mShow = t.match(showContentsRegex);
+            if (mShow) {
+                const folder = mShow[1] ? mShow[1].trim().replace(/^['"]|['"]$/g, '') : undefined;
+                const res = await listFolder(folder);
+                if (res.ok) {
+                    const entries = res.entries as Array<{name: string, isDirectory: boolean}>;
+                    if (!entries || entries.length === 0) {
+                        const reply: Message = { id: Date.now() + 2, text: `No files or folders found in ${folder ? `aiaccess/${folder}` : 'aiaccess'}.`, sender: 'ai' };
+                        setMessages(prev => [...prev, reply]);
+                        return true;
+                    }
+                    const lines = entries.map(e => `${e.isDirectory ? '[DIR] ' : '[FILE]'} ${e.name}`);
+                    const reply: Message = { id: Date.now() + 2, text: `Contents of ${folder ? `aiaccess/${folder}` : 'aiaccess'}:\n\n` + lines.join('\n'), sender: 'ai' };
+                    setMessages(prev => [...prev, reply]);
+                } else {
+                    const reply: Message = { id: Date.now() + 2, text: `Failed to list folder: ${res.error}`, sender: 'ai' };
+                    setMessages(prev => [...prev, reply]);
+                }
+                return true;
+            }
+
+            const mOpenFolderCmd = t.match(openFolderRegex);
+            if (mOpenFolderCmd) {
+                const name = mOpenFolderCmd[1].trim();
+                const res = await openFolder(name);
+                if (res.ok) {
+                    const reply: Message = { id: Date.now() + 2, text: `Opening folder: ${res.path}`, sender: 'ai' };
+                    setMessages(prev => [...prev, reply]);
+                } else {
+                    const reply: Message = { id: Date.now() + 2, text: `Failed to open folder: ${res.error}`, sender: 'ai' };
+                    setMessages(prev => [...prev, reply]);
+                }
+                return true;
+            }
+            const searchRegex = /^(?:search for|search)\s+(.+)$/i;
+            const settingsRegex = /^(?:open|show)\s+settings(?:\s+(\w+))?$/i;
+
+            const mOpen = t.match(openRegex);
+            if (mOpen) {
+                let target = mOpen[1].trim();
+                // If it's a short name like 'instagram', normalize to instagram.com
+                const normalizeSite = (s: string) => {
+                    if (/^https?:\/\//i.test(s)) return s;
+                    if (s.includes(' ')) return 'https://' + s.replace(/\s+/g, '').toLowerCase();
+                    if (s.includes('.')) return /^https?:\/\//i.test(s) ? s : 'https://' + s;
+                    return 'https://' + s + '.com';
+                };
+                const url = normalizeSite(target);
+                // Prefer webview navigation if available
+                if (onNavigate) {
+                    onNavigate(url);
+                    const reply: Message = { id: Date.now() + 2, text: `Opening ${target}...`, sender: 'ai' };
+                    setMessages(prev => [...prev, reply]);
+                    return true;
+                }
+                return false;
+            }
+
+            const mSearch = t.match(searchRegex);
+            if (mSearch) {
+                const q = mSearch[1].trim();
+                if (onSearch) {
+                    onSearch(q);
+                    const reply: Message = { id: Date.now() + 2, text: `Searching for "${q}"...`, sender: 'ai' };
+                    setMessages(prev => [...prev, reply]);
+                    return true;
+                }
+                return false;
+            }
+
+            const mSettings = t.match(settingsRegex);
+            if (mSettings) {
+                const section = mSettings[1] || undefined;
+                if (onOpenSettings) {
+                    onOpenSettings(section);
+                    const reply: Message = { id: Date.now() + 2, text: `Opening settings${section ? ` (${section})` : ''}...`, sender: 'ai' };
+                    setMessages(prev => [...prev, reply]);
+                    return true;
+                }
+                return false;
+            }
+
+            return false;
+        };
+
         try {
-            const aiText = await geminiDirectQuery(userQuery);
-            const aiMessage: Message = {
-                id: Date.now() + 1,
-                text: aiText,
-                sender: 'ai',
-            };
-            setMessages(prev => [...prev, aiMessage]);
+            const handled = await tryHandleCommand(userQuery);
+            if (!handled) {
+                const aiText = await geminiDirectQuery(userQuery);
+                const aiMessage: Message = {
+                    id: Date.now() + 1,
+                    text: aiText,
+                    sender: 'ai',
+                };
+                setMessages(prev => [...prev, aiMessage]);
+            }
         } catch (error) {
-            console.error('AI processing error:', error);
+            console.error('AI processing error or command handling error:', error);
             const errorMessage: Message = {
                 id: Date.now() + 1,
                 text: "Sorry, I encountered an error processing your request. Please try again.",

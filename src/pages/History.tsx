@@ -31,12 +31,12 @@ const History: React.FC = () => {
   const filterHistory = () => {
     let filtered = history;
 
-    // Search filter
+   
     if (searchQuery) {
       filtered = historyService.searchHistory(searchQuery);
     }
 
-    // Date filter
+    
     if (selectedDate) {
       const date = new Date(selectedDate);
       const nextDay = new Date(date);
@@ -46,7 +46,7 @@ const History: React.FC = () => {
       );
     }
 
-    // Site filter
+    
     if (selectedSite) {
       filtered = filtered.filter(entry =>
         entry.url.toLowerCase().includes(selectedSite.toLowerCase())

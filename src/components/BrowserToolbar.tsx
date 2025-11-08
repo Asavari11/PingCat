@@ -13,7 +13,6 @@ import {
   LogOutIcon,
   DownloadIcon,
   HelpCircleIcon,
-  Settings,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -70,7 +69,11 @@ export const BrowserToolbar = ({
   }, [activeTabId]);
 
   const handleLogout = () => {
-    window.location.reload();
+    localStorage.removeItem("activeProfile");
+    localStorage.removeItem("token"); 
+   
+    navigate("/", { replace: true });
+    setTimeout(() => window.location.reload(), 100); 
   };
 
   return (
@@ -180,10 +183,6 @@ export const BrowserToolbar = ({
           <DropdownMenuItem onClick={() => navigate("/history")}>
             <HistoryIcon className="h-4 w-4 mr-3" />
             History
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate('/settings')}>
-            <Settings className="h-4 w-4 mr-3" />
-            Settings
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => navigate('/downloads')}>
             <DownloadIcon className="h-4 w-4 mr-3" />

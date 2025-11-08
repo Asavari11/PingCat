@@ -1,0 +1,1 @@
+Kimi is an artificial intelligence (AI) chatbot and series of large language models developed by Chinese company Moonshot AI. Its first version, released in 2023, was known for supporting up to 128,000 tokens of context.[1] Kimi K2, an open-weight model released in July 2025, showed strong performances on coding benchmarks.[2]

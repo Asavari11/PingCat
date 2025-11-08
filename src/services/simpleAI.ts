@@ -11,17 +11,14 @@ export interface AIResponse {
 }
 
 class SimpleAI {
-  // Check if the query is a built-in command
   private isCommand(query: string): boolean {
     const commandPrefixes = ['go to', 'open', 'search for', 'show', 'settings', 'clear history', 'find'];
     return commandPrefixes.some(prefix => query.toLowerCase().startsWith(prefix));
   }
 
-  // Handle built-in commands
   private handleCommand(query: string): AIResponse {
     const lowerQuery = query.toLowerCase();
 
-    // Navigation command
     if (lowerQuery.startsWith('go to') || lowerQuery.startsWith('open ')) {
       const parts = query.split(' ').slice(2);
       const url = parts.join(' ') || '';
@@ -36,7 +33,6 @@ class SimpleAI {
       };
     }
 
-    // Search command
     if (lowerQuery.startsWith('search for') || lowerQuery.startsWith('find')) {
       const searchTerm = query.replace(/^(search for|find)\s+/i, '').trim();
       return {
@@ -49,7 +45,6 @@ class SimpleAI {
       };
     }
 
-    // Settings command
     if (lowerQuery.includes('settings')) {
       return {
         text: 'Opening settings',
@@ -67,24 +62,20 @@ class SimpleAI {
     };
   }
 
-  // Main query processing function
   async processQuery(query: string): Promise<AIResponse> {
     console.log('SimpleAI: processing query:', query);
 
-    // Handle built-in commands
     if (this.isCommand(query)) {
       console.log('SimpleAI: handling built-in command');
       return this.handleCommand(query);
     }
 
-    // Natural language file creation patterns
     const makeFilePatterns = [
       /(?:make|create) (?:a )?(?:new )?file (?:called |named )?["']?([^"']+?)["']? (?:with|containing) (?:the )?(?:content|text)?[:\s]+([^]*)/i,
       /(?:make|create) (?:a )?(?:new )?file (?:called |named )?["']?([^"']+?)["']?[:\s]+([^]*)/i,
       /(?:write|save) (?:this )?(?:content|text) to (?:a )?(?:new )?file (?:called |named )?["']?([^"']+?)["']?[:\s]+([^]*)/i,
     ];
 
-    // Try each pattern to match file creation requests
     for (const pattern of makeFilePatterns) {
       const match = query.match(pattern);
       if (match) {
@@ -98,7 +89,6 @@ class SimpleAI {
         }
 
         try {
-          // Get the project root path first
           const projectRoot = await (window as any).electronAPI?.getProjectRoot();
           if (!projectRoot) {
             return { text: 'Could not determine project location.' };
@@ -120,12 +110,10 @@ class SimpleAI {
       }
     }
 
-    // File system and terminal commands
     const runTerminalMatch = query.match(/^(?:run|execute|terminal)\s+command\s+(.+)/i);
     if (runTerminalMatch) {
       const command = runTerminalMatch[1].trim();
       try {
-        // Security: Only allow safe read-only commands
         const safeCommands = ['dir', 'ls', 'type', 'cat', 'pwd', 'cd', 'echo'];
         const cmd = command.split(' ')[0].toLowerCase();
         if (!safeCommands.includes(cmd)) {
@@ -137,7 +125,6 @@ class SimpleAI {
           return { text: `Failed to execute command: ${command}` };
         }
 
-        // Wait for output
         const maxAttempts = 10;
         for (let i = 0; i < maxAttempts; i++) {
           await new Promise(resolve => setTimeout(resolve, 500));
@@ -152,7 +139,6 @@ class SimpleAI {
       }
     }
 
-    // Direct file system operations via IPC
     const createFileMatch = query.match(/^create file\s+([^\s]+)\s+with\s+content\s+([\s\S]+)/i);
     if (createFileMatch) {
       const relPath = createFileMatch[1];
@@ -182,16 +168,16 @@ class SimpleAI {
     if (readFileMatch) {
       const relPath = readFileMatch[1].trim();
       try {
-        // First try IPC fs read
+        
         const res = await (window as any).electronAPI?.fsRead(relPath);
         if (res?.content !== undefined) return { text: res.content };
         
-        // If IPC fails, try using cat/type command
+        
         const isWindows = (window as any).electronAPI?.platform === 'win32';
         const cmd = isWindows ? `type "${relPath}"` : `cat "${relPath}"`;
         const terminalId = await (window as any).electronAPI?.executeInTerminal?.(cmd);
         if (terminalId) {
-          // Wait for output
+          
           await new Promise(resolve => setTimeout(resolve, 500));
           const output = await (window as any).electronAPI?.getTerminalOutput?.(terminalId);
           if (output) return { text: output };
@@ -207,19 +193,19 @@ class SimpleAI {
     if (listDirMatch) {
       const relPath = (listDirMatch[1] || '.').trim();
       try {
-        // First try IPC fs list
+       
         const res = await (window as any).electronAPI?.fsList(relPath);
         if (!res?.error) {
           const items = (res || []).map((i: any) => `${i.isDirectory ? '[DIR]' : '[FILE]'} ${i.name}`).join('\n');
           return { text: `Contents of ${relPath}:\n${items}` };
         }
         
-        // If IPC fails, try using dir/ls command
+       
         const isWindows = (window as any).electronAPI?.platform === 'win32';
         const cmd = isWindows ? `dir "${relPath || '.'}"` : `ls -la "${relPath || '.'}"`;
         const terminalId = await (window as any).electronAPI?.executeInTerminal?.(cmd);
         if (terminalId) {
-          // Wait for output
+        
           await new Promise(resolve => setTimeout(resolve, 500));
           const output = await (window as any).electronAPI?.getTerminalOutput?.(terminalId);
           if (output) return { text: output };
@@ -243,7 +229,7 @@ class SimpleAI {
       }
     }
 
-    // Handle "summarize the page" command
+    
     const summarizeMatch = query.match(/^summarize(?:\s+(?:the\s+)?page)?(?:\s+(https?:\/\/\S+))?/i);
     if (summarizeMatch) {
       console.log('SimpleAI: Matched summarize command, triggering summarize_page action');
@@ -252,12 +238,11 @@ class SimpleAI {
         actions: [{
           type: 'summarize_page',
           label: 'Summarize current page',
-          data: { url: summarizeMatch[1] }  // Optional URL if provided
+          data: { url: summarizeMatch[1] }  
         }]
       };
     }
 
-    // Legacy URL summarization (kept for backward compatibility)
     const summarizeUrlMatch = query.match(/^summarize\s+url\s+(https?:\/\/\S+)/i);
     if (summarizeUrlMatch) {
       const url = summarizeUrlMatch[1];
@@ -280,7 +265,6 @@ class SimpleAI {
       }
     }
 
-    // For everything else, proxy the query to the aiServer via IPC
     try {
       console.log('SimpleAI: forwarding query to aiServer via IPC');
       const response = await aiServerConnector.queryGemini(query);
