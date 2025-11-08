@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TitleBar } from "@/components/TitleBar";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 import Welcome from "./pages/Welcome";
 import Signup from "./pages/SignUp";
@@ -15,6 +16,10 @@ import NotFound from "./pages/NotFound";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ManageProfiles from "./pages/ManageProfiles";
+import Incognito from "./pages/Incognito";
+import History from "./pages/History";
+import Downloads from "./pages/Downloads";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -88,6 +93,10 @@ const AppContent = () => {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/manage-profiles" element={<ManageProfiles />} />
+          <Route path="/incognito" element={<Incognito />} />
+          <Route path="/history" element={<History />} />
+          <Route path="/downloads" element={<Downloads />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
@@ -96,17 +105,19 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

@@ -180,7 +180,9 @@ export const TabBar = ({
                 {tab.icon ? (
                   <img src={tab.icon} alt="" className="w-4 h-4 rounded-sm" />
                 ) : (
-                  isCollapsed && <div className="w-3 h-3 bg-gray-400 rounded-sm" />
+                  <div className="w-4 h-4 bg-gray-400 rounded-sm flex items-center justify-center">
+                    <FileIcon className="w-2.5 h-2.5 text-white" />
+                  </div>
                 )}
 
                 {!isCollapsed && (
@@ -190,19 +192,17 @@ export const TabBar = ({
                 )}
               </div>
 
-              { (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-1 w-1 rounded-full opacity-0 group-hover:opacity-100 hover:bg-secondary/80 transition-opacity"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onTabClose(tab.id);
-                  }}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-1 w-1 rounded-full opacity-0 group-hover:opacity-100 hover:bg-secondary/80 transition-opacity"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTabClose(tab.id);
+                }}
+              >
+                <X className="h-3 w-3" />
+              </Button>
             </div>
           ))}
         </div>
@@ -288,7 +288,13 @@ export const TabBar = ({
               }`}
             >
               <div className="flex items-center gap-2 flex-1 truncate">
-                {tab.icon && <img src={tab.icon} alt="" className="w-4 h-4 rounded-sm" />}
+                {tab.icon ? (
+                  <img src={tab.icon} alt="" className="w-4 h-4 rounded-sm" />
+                ) : (
+                  <div className="w-4 h-4 bg-gray-400 rounded-sm flex items-center justify-center">
+                    <FileIcon className="w-2.5 h-2.5 text-white" />
+                  </div>
+                )}
                 <span className="truncate text-xs font-medium text-foreground">{tab.title}</span>
               </div>
 

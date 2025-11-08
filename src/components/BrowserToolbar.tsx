@@ -38,6 +38,10 @@ interface Profile {
 export const BrowserToolbar = ({
   searchValue,
   onSearchChange,
+  onUrlSubmit,
+  onGoBack,
+  onGoForward,
+  onReload,
   activeTabId,
   profileName,
   activeProfileId,
@@ -46,6 +50,10 @@ export const BrowserToolbar = ({
 }: {
   searchValue: string;
   onSearchChange: (value: string) => void;
+  onUrlSubmit: (url: string) => void;
+  onGoBack?: () => void;
+  onGoForward?: () => void;
+  onReload?: () => void;
   activeTabId: string;
   profileName: string;
   activeProfileId: string;
@@ -67,13 +75,13 @@ export const BrowserToolbar = ({
 
   return (
     <div className="flex items-center gap-2 px-4 py-2 bg-background border-b border-border">
-      <Button variant="ghost" size="icon" className="h-8 w-8">
+      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onGoBack}>
         <Undo className="h-4 w-4" />
       </Button>
-      <Button variant="ghost" size="icon" className="h-8 w-8">
+      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onGoForward}>
         <Redo className="h-4 w-4" />
       </Button>
-      <Button variant="ghost" size="icon" className="h-8 w-8">
+      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onReload}>
         <RefreshCw className="h-4 w-4" />
       </Button>
       <div className="flex-1 flex items-center gap-2 px-3 py-1 bg-secondary/50 rounded-lg border border-input">
@@ -83,6 +91,11 @@ export const BrowserToolbar = ({
           placeholder="Search or enter address..."
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              onUrlSubmit(searchValue);
+            }
+          }}
           className="border-0 bg-transparent h-7 px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
         />
       </div>
@@ -148,16 +161,27 @@ export const BrowserToolbar = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={() => {
+            // Open new window with same behavior as closing last tab
+            if ((window as any).electronAPI && (window as any).electronAPI.createNewWindow) {
+              // For Electron, create a proper new window
+              (window as any).electronAPI.createNewWindow();
+            } else {
+              // Fallback for web environment
+              window.open(window.location.href, "_blank", "width=1200,height=800");
+            }
+          }}>
             <AppWindow className="h-4 w-4 mr-3" />
             New window
           </DropdownMenuItem>
-          <DropdownMenuItem>New incognito window</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => window.open("/incognito", "_blank", "width=1200,height=800")}>
+            New incognito window
+          </DropdownMenuItem>
           <DropdownMenuItem>
             <DownloadIcon className="h-4 w-4 mr-3" />
             Downloads
           </DropdownMenuItem>
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate("/history")}>
             <HistoryIcon className="h-4 w-4 mr-3" />
             History
           </DropdownMenuItem>
@@ -165,7 +189,7 @@ export const BrowserToolbar = ({
             <Bookmark className="h-4 w-4 mr-3" />
             Bookmarks
           </DropdownMenuItem>
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate('/settings')}>
             <Settings className="h-4 w-4 mr-3" />
             Settings
           </DropdownMenuItem>

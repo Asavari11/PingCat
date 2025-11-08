@@ -13,6 +13,8 @@
     "electron-start": "cross-env ELECTRON_START_URL=http://localhost:8080 electron -r ts-node/register electron/main.ts"
   },
   "dependencies": {
+    "@google/genai": "^1.29.0",
+    "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
@@ -80,7 +82,7 @@
     "@types/express": "^5.0.4",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/mongoose": "^5.11.96",
-    "@types/node": "^22.18.12",
+    "@types/node": "^22.19.0",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react-swc": "^3.11.0",
