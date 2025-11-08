@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Send, ArrowLeft, ExternalLink, Search, Settings, History, Lightbulb } from 'lucide-react';
-import { simpleAI } from '@/services/simpleAI';
-import type { AIResponse } from '@/services/simpleAI';
+
+import { geminiDirectQuery } from '@/services/geminiDirectAI';
 
 import type { WebViewRef } from './WebView';
 
@@ -81,25 +81,13 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
         setLoading(true);
 
         try {
-            const aiResponse = await simpleAI.processQuery(userQuery);
-
+            const aiText = await geminiDirectQuery(userQuery);
             const aiMessage: Message = {
                 id: Date.now() + 1,
-                text: aiResponse.text,
+                text: aiText,
                 sender: 'ai',
-                suggestions: aiResponse.suggestions,
-                actions: aiResponse.actions
             };
-
             setMessages(prev => [...prev, aiMessage]);
-
-            // Automatically trigger summarize_page action if present
-            if (aiResponse.actions) {
-                const summarizeAction = aiResponse.actions.find(a => a.type === 'summarize_page');
-                if (summarizeAction) {
-                    handlePageSummarization(summarizeAction.data);
-                }
-            }
         } catch (error) {
             console.error('AI processing error:', error);
             const errorMessage: Message = {
@@ -216,15 +204,14 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
             }
             const snippet = pageContent.slice(0, 15000);
             const prompt = `Summarize the following webpage content in a concise paragraph, and provide 2-3 suggested follow-ups:\n\n${snippet}`;
-            const aiResponse = await simpleAI.processQuery(prompt);
+            // Gemini direct mode: summarization and other advanced actions are not supported in minimal mode
             // Only show the final summary message, not the placeholder
             setMessages(prev => [
-                ...prev.filter(m => !m.text.startsWith('Summary for')), // Remove any previous summary placeholder
+                ...prev.filter(m => !m.text.startsWith('Summary for')),
                 {
                     id: Date.now() + 3,
-                    text: `Summary for "${data?.title || url}":\n\n${aiResponse.text}`,
-                    sender: 'ai',
-                    suggestions: aiResponse.suggestions
+                    text: `Summary for "${data?.title || url}":\n\n(Summarization not supported in minimal Gemini mode)`,
+                    sender: 'ai'
                 }
             ]);
         } catch (error) {

@@ -177,25 +177,17 @@ export const BrowserToolbar = ({
           <DropdownMenuItem onClick={() => window.open("/incognito", "_blank", "width=1200,height=800")}>
             New incognito window
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <DownloadIcon className="h-4 w-4 mr-3" />
-            Downloads
-          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => navigate("/history")}>
             <HistoryIcon className="h-4 w-4 mr-3" />
             History
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Bookmark className="h-4 w-4 mr-3" />
-            Bookmarks
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => navigate('/settings')}>
             <Settings className="h-4 w-4 mr-3" />
             Settings
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <HelpCircleIcon className="h-4 w-4 mr-3" />
-            Help
+          <DropdownMenuItem onClick={() => navigate('/downloads')}>
+            <DownloadIcon className="h-4 w-4 mr-3" />
+            Downloads
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleLogout}>
             <LogOutIcon className="h-4 w-4 mr-3 text-red-500" />

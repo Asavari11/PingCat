@@ -1,8 +1,9 @@
+
+
 import { GoogleGenAI } from "@google/genai";
 
-// The client will read the API key from process.env.GEMINI_API_KEY
-// so we can initialize with an empty config object (library handles env).
-const ai = new GoogleGenAI({});
+// Pass the API key directly here
+const ai = new GoogleGenAI({ apiKey: "AIzaSyA7x4GdafR8u16AxlTdCxSnd4QKP2Gb9a4" });
 
 async function main() {
   const query = process.env.GEMINI_QUERY || "Hello! How can I help you?";

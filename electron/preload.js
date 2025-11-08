@@ -1,13 +1,7 @@
+
 const { contextBridge, ipcRenderer, shell } = require("electron");
-const path = require('path');
 
 contextBridge.exposeInMainWorld("electronAPI", {
-  // Add path utilities
-  path: {
-    join: (...args) => path.join(...args),
-    dirname: (p) => path.dirname(p),
-    basename: (p) => path.basename(p)
-  },
   // Get project root
   getProjectRoot: () => ipcRenderer.invoke('get-project-root'),
   minimize: () => ipcRenderer.send("window-minimize"),

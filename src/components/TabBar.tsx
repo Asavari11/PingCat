@@ -32,16 +32,13 @@ export const TabBar = ({
   isVertical = false,
   onLayoutToggle,
 }: TabBarProps) => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  // Removed search tabs state
   const [sidebarWidth, setSidebarWidth] = useState(200);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const isResizing = useRef(false);
 
-  const filteredTabs = tabs.filter((tab) =>
-    tab.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Removed filteredTabs logic
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -120,38 +117,7 @@ export const TabBar = ({
                 <TooltipContent>Bookmarks</TooltipContent>
               </Tooltip>
 
-              <Popover open={isSearchOpen} onOpenChange={setIsSearchOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Search className="h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-64 p-2">
-                  <Input
-                    placeholder="Search tabs..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="h-8"
-                  />
-                  {searchQuery && (
-                    <div className="mt-2 max-h-48 overflow-y-auto scrollbar-hide">
-                      {filteredTabs.map((tab) => (
-                        <div
-                          key={tab.id}
-                          onClick={() => {
-                            onTabChange(tab.id);
-                            setIsSearchOpen(false);
-                            setSearchQuery("");
-                          }}
-                          className="px-2 py-1.5 hover:bg-accent rounded cursor-pointer text-sm"
-                        >
-                          {tab.title}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </PopoverContent>
-              </Popover>
+              {/* Removed search tabs popover (vertical) */}
             </>
           )}
 
@@ -226,52 +192,9 @@ export const TabBar = ({
   }}
 >
 
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onLayoutToggle}
-            className="h-8 w-8 rounded-full hover:bg-tab-hover transition-colors mb-1 flex-shrink-0"
-          >
-            <PanelLeftOpen className="h-4 w-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Switch to vertical</TooltipContent>
-      </Tooltip>
+      {/* Removed switch to vertical button */}
 
-      <Popover open={isSearchOpen} onOpenChange={setIsSearchOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-tab-hover transition-colors mb-1 flex-shrink-0">
-            <Search className="h-4 w-4" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-64 p-2">
-          <Input
-            placeholder="Search tabs..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-8"
-          />
-          {searchQuery && (
-            <div className="mt-2 max-h-48 overflow-y-auto scrollbar-hide">
-              {filteredTabs.map((tab) => (
-                <div
-                  key={tab.id}
-                  onClick={() => {
-                    onTabChange(tab.id);
-                    setIsSearchOpen(false);
-                    setSearchQuery("");
-                  }}
-                  className="px-2 py-1.5 hover:bg-accent rounded cursor-pointer text-sm"
-                >
-                  {tab.title}
-                </div>
-              ))}
-            </div>
-          )}
-        </PopoverContent>
-      </Popover>
+      {/* Removed search tabs popover (horizontal) */}
 
       <div className="flex-1 flex overflow-x-auto scrollbar-hide gap-1" ref={horizontalTabsRef}>
         {tabs.map((tab) => {

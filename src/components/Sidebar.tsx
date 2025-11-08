@@ -1,3 +1,16 @@
+import { Download } from "lucide-react";
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => navigate('/downloads')}
+                    >
+                        <Download className="h-5 w-5" />
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">Downloads</TooltipContent>
+            </Tooltip>
 
 
 import { Settings, Bookmark, Sparkles, Terminal } from "lucide-react";

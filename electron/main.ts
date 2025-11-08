@@ -61,6 +61,43 @@ function createWindow() {
   ]);
   Menu.setApplicationMenu(menu);
 
+  // Handle file downloads from webview
+  win.webContents.session.on('will-download', (event, item, webContents) => {
+    // Optionally, you can show a save dialog here or use the default path
+    // item.setSavePath('/desired/path/filename.ext');
+
+    // Send progress updates to renderer
+    item.on('updated', (event, state) => {
+      const progress = {
+        id: item.getStartTime() + '-' + item.getFilename(),
+        filename: item.getFilename(),
+        url: item.getURL(),
+        receivedBytes: item.getReceivedBytes(),
+        totalBytes: item.getTotalBytes(),
+        state,
+        paused: item.isPaused(),
+      };
+      win.webContents.send('download-progress', progress);
+    });
+
+    item.once('done', (event, state) => {
+      const doneInfo = {
+        id: item.getStartTime() + '-' + item.getFilename(),
+        filename: item.getFilename(),
+        url: item.getURL(),
+        filePath: item.getSavePath(),
+        totalBytes: item.getTotalBytes(),
+        state,
+        status: state,
+      };
+      win.webContents.send('download-done', doneInfo);
+      if (state === 'completed') {
+        console.log('Download successfully');
+      } else {
+        console.log(`Download failed: ${state}`);
+      }
+    });
+  });
   ipcMain.on("window-minimize", () => win.minimize());
   ipcMain.on("window-maximize", () => (win.isMaximized() ? win.unmaximize() : win.maximize()));
   ipcMain.on("window-close", () => win.close());
@@ -215,16 +252,12 @@ ipcMain.handle("query-gemini", async (event, query: string) => {
 
     try {
       // Load .env if not already loaded
-      if (!process.env.GEMINI_API_KEY) {
-        const envPath = path.resolve(__dirname, '../.env');
-        config({ path: envPath });
-      }
-
+      // Always use the hardcoded Gemini API key
       const aiProcess = spawn('node', [serverPath], {
         env: {
           ...process.env,
           GEMINI_QUERY: query,
-          GEMINI_API_KEY: process.env.GEMINI_API_KEY || "AIzaSyA7x4GdafR8u16AxlTdCxSnd4QKP2Gb9a4"
+          GEMINI_API_KEY: "AIzaSyA7x4GdafR8u16AxlTdCxSnd4QKP2Gb9a4"
         }
       });
 

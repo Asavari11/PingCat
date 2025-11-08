@@ -12,10 +12,40 @@ const Downloads: React.FC = () => {
   const [filteredDownloads, setFilteredDownloads] = useState<DownloadEntry[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDate, setSelectedDate] = useState<string>("");
+  const [inProgress, setInProgress] = useState<any[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     loadDownloads();
+
+    // Listen for download progress and completion from Electron main process
+    let ipcRenderer: any;
+    try {
+      ipcRenderer = window.require?.('electron')?.ipcRenderer;
+    } catch {}
+    if (ipcRenderer) {
+      const progressListener = (_event: any, progress: any) => {
+        setInProgress((prev) => {
+          const idx = prev.findIndex((d) => d.id === progress.id);
+          if (idx !== -1) {
+            const updated = [...prev];
+            updated[idx] = progress;
+            return updated;
+          }
+          return [...prev, progress];
+        });
+      };
+      const doneListener = (_event: any, doneInfo: any) => {
+        setInProgress((prev) => prev.filter((d) => d.id !== doneInfo.id));
+        setTimeout(loadDownloads, 500);
+      };
+      ipcRenderer.on('download-progress', progressListener);
+      ipcRenderer.on('download-done', doneListener);
+      return () => {
+        ipcRenderer.removeListener('download-progress', progressListener);
+        ipcRenderer.removeListener('download-done', doneListener);
+      };
+    }
   }, []);
 
   useEffect(() => {
@@ -163,9 +193,50 @@ const Downloads: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Downloads List */}
+        {/* Downloads List with in-progress */}
         <div className="space-y-6">
-          {Object.keys(groupedDownloads).length === 0 ? (
+          {inProgress.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Download className="h-5 w-5 animate-pulse" />
+                  Downloading...
+                  <Badge variant="secondary" className="ml-auto">
+                    {inProgress.length} in progress
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {inProgress.map((entry) => (
+                    <div key={entry.id} className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <Download className="h-5 w-5 text-blue-500 flex-shrink-0 animate-pulse" />
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium truncate">{entry.filename}</h4>
+                          <p className="text-sm text-muted-foreground truncate">{entry.url}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="outline" className="text-xs">
+                              {downloadService.formatFileSize(entry.receivedBytes)} / {downloadService.formatFileSize(entry.totalBytes)}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {getDomain(entry.url)}
+                            </Badge>
+                            <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                            <span className="text-xs text-muted-foreground capitalize">{entry.state}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span>{((entry.receivedBytes / entry.totalBytes) * 100).toFixed(0)}%</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          {Object.keys(groupedDownloads).length === 0 && inProgress.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Download className="h-12 w-12 text-muted-foreground mb-4" />
